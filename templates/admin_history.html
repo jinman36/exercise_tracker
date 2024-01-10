@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Admin History
+{% endblock %}
+
+{% block main %}
+<h1 id="class_list">History</h1>
+<table>
+    <tbody>
+        <tr>
+            <td>Date</td>
+            <td>Name</td>
+            <td>Class</td>
+        </tr>
+        {% for row in table %}
+        <tr>
+            <td>{{ row.month }}/{{ row.day }}/{{ row.year }}</td>
+            <td>{{ row.student_firstname }} {{ row.student_lastname }}</td>
+            <td>{{ row.class_name }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

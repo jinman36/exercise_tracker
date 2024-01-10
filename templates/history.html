@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    history
+{% endblock %}
+
+{% block main %}
+<h1>Class History</h1>
+<table>
+    <tbody>
+        <tr>
+            <td>Class</td>
+            <td>Date</td>
+        </tr>
+        {% for row in table %}
+        <tr>
+            <td>{{ row.class_name }}</td>
+            <td>{{ row.month }}/{{ row.day }}/{{ row.year }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

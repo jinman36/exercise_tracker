@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Punch Card
+{% endblock %}
+
+{% block main %}
+
+{% for punch in student_punchCards %}
+    <h1>{{ punch.user_name }}, you have {{ punch.punch_card }} punches left.</h1>
+{% endfor %}
+<table>
+    <tbody>
+        <th>
+            Date
+        </th>
+        <th>
+            Course
+        </th>
+        {% for row in attendance %}
+        <tr>
+            <td>{{ row.month }}-{{ row.day }}-{{ row.year }}</td>
+            <td>{{ row.class_name }}</td>
+            <td></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

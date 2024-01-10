@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Admin Punch Card
+{% endblock %}
+
+{% block main %}
+<h1 id="class_list">Punch Cards</h1>
+<form action="/admin_punch_cards" method="post" id="class_list">
+    <div class="mb-3">
+        <select name="student">
+            <option value="">Please Select a User</option>
+            {% for row in students %}
+            <option value="{{ row.student_id }}">{{ row.user_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <input autocomplete="off" autofocus required class="form-control mx-auto w-auto" id="punches" name="punches" placeholder="Additional Punches" type="text">
+    </div>
+
+    <button class="btn btn-danger" type="submit">Add</button>
+</form>
+<br>
+
+<table>
+    <tbody>
+        <tr>
+            <td>First Name</td>
+            <td>Last Name</td>
+            <td>Punches</td>
+        </tr>
+        {% for student in students %}
+        <tr>
+            <td>{{ student.student_firstname }}</td>
+            <td>{{ student.student_lastname }}</td>
+            <td>{{ student.punch_card }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

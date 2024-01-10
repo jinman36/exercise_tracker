@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Class Descriptions
+{% endblock %}
+
+{% block main %}
+<h1>Class Descriptions</h1>
+<table>
+    <tbody>
+        {% for row in class_rows %}
+        <tr>
+            <td>{{ row.class_name }} </td>
+            <td align="left">|| {{ row.Description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

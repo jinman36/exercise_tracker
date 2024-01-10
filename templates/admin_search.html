@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block title %}
+   Admin
+{% endblock %}
+
+{% block main %}
+            {% if course_search %}
+            <h1 id="class_list">Class Search Results</h1>
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Date</td>
+                        <td>Course Name</td>
+                        <td>Attendance</td>
+                    </tr>
+                    {% for course in course_search %}
+                    <tr>
+                        <td>{{ course.month }}-{{ course.day }}-{{ course.year }}</td>
+                        <td>{{ course.class_name }}</td>
+                        <td>{{ course.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% elif student_search %}
+            <h1 id="class_list">Student Search Results</h1>
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Course Name</td>
+                        <td>Attendance</td>
+                    </tr>
+                    {% for student in student_search %}
+                    <tr>
+                        <!-- <td>{{ student.month }}-{{ student.day }}-{{ student.year }}</td> -->
+                        <td>{{ student.class_name }}</td>
+                        <td>{{ student.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <h2>No Results</h2>
+            {% endif %}
+{% endblock %}

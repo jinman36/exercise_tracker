@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Classes
+{% endblock %}
+
+{% block main %}
+        <h2 id="class_list">Class List</h2>
+        <form action="/signup" id="class_list" method="post">
+            <div class="mb-3">
+                <select name="course_id">
+                    <option>Please choose a class</option>
+                    {% for class in classes %}
+                    <option value="{{ class.course_id }}">{{ class.class_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <input autocomplete="off" autofocus class="form-check-input" id="punch" name="punch" value="1" type="checkbox">
+                <label class="form-check-label" for="flexCheckDefault">Punch Card</label>
+            </div>
+            <button class="btn btn-success" type="submit">Sign In</button>
+        </form>
+{% endblock %}

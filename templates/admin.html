@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}
+   Admin
+{% endblock %}
+
+{% block main %}
+        <h1 id="class_list">Admin Page</h1>
+        <h3 id="class_list">Search By Course</h3>
+        <form action="/admin" method="post" id="class_list">
+                <div class="mb-3">
+                        <select name="class">
+                                <option value="">Please Select a Course</option>
+                                {% for row in classes %}
+                                <option value="{{ row.course_id }}">{{ row.class_name }}</option>
+                                {% endfor %}
+                        </select>
+                </div>
+                <button class="btn btn-danger" type="submit">Class Look Up</button>
+        </form>
+        <br>
+        <h3 id="class_list">Search By Student</h3>
+        <form action="/admin" method="post" id="class_list">
+                <div class="mb-3">
+                        <select name="student">
+                                <option value="">Please Select a Student</option>
+                                {% for row in students %}
+                                <option value="{{ row.student_id }}">{{ row.student_firstname }} {{ row.student_lastname }}</option>
+                                {% endfor %}
+                        </select>
+                </div>
+
+                <button class="btn btn-danger" type="submit">Student Look Up</button>
+        </form>
+
+{% endblock %}
