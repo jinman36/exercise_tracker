@@ -1,11 +1,12 @@
 import os
 
-from cs50 import SQL
+# from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
-from helpers import apology, login_required
+from helper import apology, login_required
+import sqlite3
 
 
 # Configure application
@@ -16,8 +17,10 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///students.db")
+# Configure SQLIite to replace CS50 library
+conn = sqlite3.connect('students.db', check_same_thread=False)
+db = conn.cursor()
+# db = SQL("sqlite:///students.db")
 
 @app.after_request
 def after_request(response):
@@ -45,18 +48,17 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute(
-            "SELECT * FROM students WHERE user_name = ?", request.form.get("username")
+        db.execute(
+            "SELECT * FROM students WHERE user_name = ?", (request.form.get("username"),)
         )
-
+        rows = db.fetchall()
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(
-            rows[0]["hash"], request.form.get("password")
-        ):
+        if len(rows) != 1 or not check_password_hash(rows[0][4], request.form.get("password")):
+            print('incorrect password')
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["student_id"]
+        session["user_id"] = rows[0][0]
 
         # Redirect user to home page
         flash("Welcome!")
@@ -71,6 +73,8 @@ def logout():
     """Log user out"""
     # Forget any user_id
     session.clear()
+    # close database
+    # conn.close()
     # Redirect user to login form
     return redirect("/")
 
@@ -78,7 +82,8 @@ def logout():
 @login_required
 def index():
     """SHOW CLASS LIST AS A SELECTION"""
-    classes = db.execute("SELECT * FROM classes")
+    db.execute("SELECT * FROM classes")
+    classes = db.fetchall()
     return render_template("index.html", classes=classes)
 
 @app.route("/punch_cards")
@@ -112,12 +117,16 @@ def register():
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
         # confirm that there is data in username field - form kept submitting on refresh without this
-        print(user_name)
+        
+        print(f"this line: {user_name}, {first_name}, {last_name}, {password}, {confirmation}")
         if user_name == "":
             return apology("please enter a username")
         else:
             if user_name:
-                if db.execute("SELECT * FROM students WHERE user_name = ?", user_name) == []:
+                db.execute("SELECT * FROM students WHERE user_name = ?", (user_name,))
+                database = db.fetchone()
+                # print(f"database response: {database}")
+                if database == None:
                     # confirm password and confirmation match - feild is required in html so it cannot be blank
                     if password == confirmation:
                         hashpass = generate_password_hash(
@@ -125,11 +134,15 @@ def register():
                         )
                         db.execute(
                             "INSERT INTO students (user_name, student_firstname, student_lastname, hash) VALUES(?, ?, ?, ?)",
+                            (
                             user_name,
                             first_name,
                             last_name,
-                            hashpass,
+                            hashpass
                         )
+                        )
+                        # print(counter,user_name, first_name, last_name, hashpass)
+                        conn.commit()
                         flash("Registered!")
                         return redirect("/")
                     else:
@@ -146,9 +159,11 @@ def signup():
     month = f"{datetime.now():%m}"
     year = f"{datetime.now():%Y}"
     punch = request.form.get("punch")
-    student_punches = db.execute("SELECT punch_card FROM students WHERE student_id = ?", student_id)
-    current_punches = student_punches[0]["punch_card"]
-    print(f"punches used: {punch}")
+    # db.execute("SELECT punch_card FROM students WHERE student_id = ?", (student_id,))
+    # student_punches = db.fetchone()
+    # print(student_punches)
+    # current_punches = student_punches[0]["punch_card"]
+    # print(f"punches used: {punch}")
     if id.isnumeric():
         if punch == '1':
             punch = int(punch)
@@ -156,31 +171,31 @@ def signup():
                 # print(student_punches[0]["punch_card"])
                 updated_punches = student_punches[0]["punch_card"] - 1
                 # print(f"{updated_punches} entered into db")
-                db.execute("UPDATE students SET punch_card = ? Where student_id = ?;", updated_punches, student_id)
-                db.execute(
-                    "INSERT INTO attendance (course_id, student_id, day, month, year, punch_card) VALUES(?,?,?,?,?,?);",
-                    id,
-                    student_id,
-                    int(day),
-                    int(month),
-                    int(year),
-                    punch
-                    )
+                # db.execute("UPDATE students SET punch_card = ? Where student_id = ?;", updated_punches, student_id)
+                # db.execute(
+                    # "INSERT INTO attendance (course_id, student_id, day, month, year, punch_card) VALUES(?,?,?,?,?,?);",
+                    # id,
+                    # student_id,
+                    # int(day),
+                    # int(month),
+                    # int(year),
+                    # punch
+                    # )
                 flash("Signed In!")
                 return redirect("/")
             else:
                 return apology("No punches left")
         else:
             print(f"no punches, class entered into db")
-            db.execute(
-            "INSERT INTO attendance (course_id, student_id, day, month, year, punch_card) VALUES(?,?,?,?,?,?);",
-            id,
-            student_id,
-            int(day),
-            int(month),
-            int(year),
-            0
-            )
+            # db.execute(
+            # "INSERT INTO attendance (course_id, student_id, day, month, year, punch_card) VALUES(?,?,?,?,?,?);",
+            # id,
+            # student_id,
+            # int(day),
+            # int(month),
+            # int(year),
+            # 0
+            # )
             flash("Signed In!")
             return redirect("/")
     else:
@@ -196,10 +211,11 @@ def history():
     )
     return render_template("/history.html", table=table)
 
-@app.route("/descriptions")
+@app.route("/descriptions") # Complete
 @login_required
 def description():
-    class_rows = db.execute("SELECT * FROM classes;")
+    db.execute("SELECT * FROM classes;")
+    class_rows = db.fetchall()
     return render_template("/descriptions.html", class_rows=class_rows)
 
 # ------ADMIN Pages -------------------
