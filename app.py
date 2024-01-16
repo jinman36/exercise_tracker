@@ -1,11 +1,12 @@
 import os
 
-from cs50 import SQL
+# from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
-from helpers import apology, login_required
+from helper import apology, login_required
+import sqlite3
 
 
 # Configure application
@@ -16,8 +17,17 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///students.db")
+# Configure SQLIite to replace CS50 library
+conn = sqlite3.connect('students.db', check_same_thread=False)
+db = conn.cursor()
+# db = SQL("sqlite:///students.db")
+
+@app.route("/database")
+def database():
+    print('database test')
+    db.execute("SELECT * FROM students")
+    student = db.fetchall()
+    return render_template("database.html", student=student)
 
 @app.after_request
 def after_request(response):
@@ -45,10 +55,11 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute(
-            "SELECT * FROM students WHERE user_name = ?", request.form.get("username")
+        db.execute(
+            "SELECT * FROM students WHERE user_name = ?", (request.form.get("username"))
         )
-
+        rows = db.fetchall()
+        print(rows)
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(
             rows[0]["hash"], request.form.get("password")
@@ -71,6 +82,8 @@ def logout():
     """Log user out"""
     # Forget any user_id
     session.clear()
+    # close database
+    # conn.close()
     # Redirect user to login form
     return redirect("/")
 
@@ -78,7 +91,8 @@ def logout():
 @login_required
 def index():
     """SHOW CLASS LIST AS A SELECTION"""
-    classes = db.execute("SELECT * FROM classes")
+    db.execute("SELECT * FROM classes")
+    classes = db.fetchall()
     return render_template("index.html", classes=classes)
 
 @app.route("/punch_cards")
@@ -112,12 +126,16 @@ def register():
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
         # confirm that there is data in username field - form kept submitting on refresh without this
-        print(user_name)
+        
+        print(f"this line: {user_name}, {first_name}, {last_name}, {password}, {confirmation}")
         if user_name == "":
             return apology("please enter a username")
         else:
             if user_name:
-                if db.execute("SELECT * FROM students WHERE user_name = ?", user_name) == []:
+                db.execute("SELECT * FROM students WHERE user_name = ?", (user_name,))
+                database = db.fetchone()
+                # print(f"database response: {database}")
+                if database == None:
                     # confirm password and confirmation match - feild is required in html so it cannot be blank
                     if password == confirmation:
                         hashpass = generate_password_hash(
@@ -125,11 +143,15 @@ def register():
                         )
                         db.execute(
                             "INSERT INTO students (user_name, student_firstname, student_lastname, hash) VALUES(?, ?, ?, ?)",
+                            (
                             user_name,
                             first_name,
                             last_name,
-                            hashpass,
+                            hashpass
                         )
+                        )
+                        # print(counter,user_name, first_name, last_name, hashpass)
+                        conn.commit()
                         flash("Registered!")
                         return redirect("/")
                     else:
@@ -137,6 +159,56 @@ def register():
                 else:
                     return apology("Check USERNAME OR PASSWORD")
     return render_template("register.html")
+
+# Real register route - do not touch
+# @app.route("/register", methods=["GET", "POST"])
+# def register():
+#     """Register user"""
+#     session.clear()
+#     if request.method == "POST":
+#         if not request.form.get("username"):
+#             return apology("must provide user name")
+#         if not request.form.get("first_name"):
+#             return apology("must provide full name")
+#         if not request.form.get("last_name"):
+#             return apology("must provide full name")
+#         if not request.form.get("password"):
+#             return apology("must provide password")
+#         if not request.form.get("confirmation"):
+#             return apology("must provide confirmation")
+#         user_name = request.form.get("username")
+#         first_name = request.form.get("first_name")
+#         last_name = request.form.get("last_name")
+#         password = request.form.get("password")
+#         confirmation = request.form.get("confirmation")
+#         # confirm that there is data in username field - form kept submitting on refresh without this
+#         print(user_name)
+#         if user_name == "":
+#             return apology("please enter a username")
+#         else:
+#             if user_name:
+#                 if db.execute("SELECT * FROM students WHERE user_name = ?", (user_name,)) == []:
+#                     # confirm password and confirmation match - feild is required in html so it cannot be blank
+#                     if password == confirmation:
+#                         hashpass = generate_password_hash(
+#                             password, method="pbkdf2", salt_length=16
+#                         )
+#                         db.execute(
+#                             "INSERT INTO students (user_name, student_firstname, student_lastname, hash) VALUES(?, ?, ?, ?)",
+#                             user_name,
+#                             first_name,
+#                             last_name,
+#                             hashpass,
+#                         )
+#                         conn.commit()
+#                         conn.close()
+#                         flash("Registered!")
+#                         return redirect("/")
+#                     else:
+#                         return apology("Passwords DO NOT MATCH")
+#                 else:
+#                     return apology("Check USERNAME OR PASSWORD")
+#     return render_template("register.html")
 
 @app.route("/signup", methods=["POST"])
 def signup():

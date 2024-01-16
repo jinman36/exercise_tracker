@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Database
+{% endblock %}
+
+{% block main %}
+<h1 id="class_list">database</h1>
+<table>
+    <tbody>
+        {% for row in student %}
+        <tr>
+            <td>{{ row  }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
