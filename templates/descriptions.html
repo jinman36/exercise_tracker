@@ -10,8 +10,8 @@
     <tbody>
         {% for row in class_rows %}
         <tr>
-            <td>{{ row.class_name }} </td>
-            <td align="left">|| {{ row.Description }}</td>
+            <td>{{ row[1] }} </td>
+            <td align="left">|| {{ row[2] }}</td>
         </tr>
         {% endfor %}
     </tbody>
