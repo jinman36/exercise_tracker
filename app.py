@@ -78,7 +78,7 @@ def logout():
     # Redirect user to login form
     return redirect("/")
 
-@app.route("/")
+@app.route("/") # Complete
 @login_required
 def index():
     """SHOW CLASS LIST AS A SELECTION"""
@@ -96,7 +96,7 @@ def punch_cards():
     return render_template("punch_cards.html", attendance=attendance, student_punchCards=student_punchCards)
 
 
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register", methods=["GET", "POST"]) # complete
 def register():
     """Register user"""
     session.clear()
@@ -151,7 +151,7 @@ def register():
                     return apology("Check USERNAME OR PASSWORD")
     return render_template("register.html")
 
-@app.route("/signup", methods=["POST"])
+@app.route("/signup", methods=["POST"]) # Complete
 def signup():
     id = request.form.get("course_id")
     student_id = session.get("user_id")
@@ -159,43 +159,48 @@ def signup():
     month = f"{datetime.now():%m}"
     year = f"{datetime.now():%Y}"
     punch = request.form.get("punch")
-    # db.execute("SELECT punch_card FROM students WHERE student_id = ?", (student_id,))
-    # student_punches = db.fetchone()
-    # print(student_punches)
+    print(id, student_id, day, month, year, punch)
+    db.execute("SELECT punch_card FROM students WHERE student_id = ?", (student_id,))
+    student_punches = db.fetchone()
+    *unpack, current_punches = student_punches
+    print(current_punches)
     # current_punches = student_punches[0]["punch_card"]
-    # print(f"punches used: {punch}")
+    print(f"punches used: {punch}")
     if id.isnumeric():
         if punch == '1':
             punch = int(punch)
             if current_punches > 0:
                 # print(student_punches[0]["punch_card"])
-                updated_punches = student_punches[0]["punch_card"] - 1
-                # print(f"{updated_punches} entered into db")
-                # db.execute("UPDATE students SET punch_card = ? Where student_id = ?;", updated_punches, student_id)
-                # db.execute(
-                    # "INSERT INTO attendance (course_id, student_id, day, month, year, punch_card) VALUES(?,?,?,?,?,?);",
-                    # id,
-                    # student_id,
-                    # int(day),
-                    # int(month),
-                    # int(year),
-                    # punch
-                    # )
+                updated_punches = current_punches - 1
+                print(f"{updated_punches} entered into db")
+                db.execute("UPDATE students SET punch_card = ? Where student_id = ?;", (updated_punches, student_id))
+                # return redirect("/")
+                db.execute(
+                    "INSERT INTO attendance (course_id, student_id, day, month, year, punch_card) VALUES(?,?,?,?,?,?);",
+                    (id,
+                    student_id,
+                    int(day),
+                    int(month),
+                    int(year),
+                    punch)
+                    )
+                conn.commit()
                 flash("Signed In!")
                 return redirect("/")
             else:
                 return apology("No punches left")
         else:
             print(f"no punches, class entered into db")
-            # db.execute(
-            # "INSERT INTO attendance (course_id, student_id, day, month, year, punch_card) VALUES(?,?,?,?,?,?);",
-            # id,
-            # student_id,
-            # int(day),
-            # int(month),
-            # int(year),
-            # 0
-            # )
+            db.execute(
+            "INSERT INTO attendance (course_id, student_id, day, month, year, punch_card) VALUES(?,?,?,?,?,?);",
+            (id,
+            student_id,
+            int(day),
+            int(month),
+            int(year),
+            0)
+            )
+            conn.commit()
             flash("Signed In!")
             return redirect("/")
     else:
