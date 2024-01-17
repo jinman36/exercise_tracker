@@ -11,7 +11,7 @@
                 <select name="course_id">
                     <option>Please choose a class</option>
                     {% for class in classes %}
-                    <option value="{{ class.course_id }}">{{ class.class_name }}</option>
+                    <option value="{{ class[0] }}">{{ class[1] }}</option>
                     {% endfor %}
                 </select>
             </div>
